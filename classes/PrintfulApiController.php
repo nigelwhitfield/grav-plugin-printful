@@ -66,16 +66,20 @@ class PrintfulApiController extends AbstractApiController
 
         $this->grav['log']->debug('Printful: webhook data: ' . json_encode($body, JSON_PRETTY_PRINT + JSON_UNESCAPED_SLASHES)) ;
 
-        switch ($body['type']) {
+        $kahunacart = KahunaCart::instance();
+        $customFields = $kahunacart->customFields();
+        $orders = $customFields->rows('order', 'printful_ref', 'asc', [ 'printful_ref' => $pf_order['id']]) ;
 
-            case 'order_updated':
-                // general order update
+        if (count($orders) != 1) {
+            $response = [ 'status' => 'not found',
+                            'printful_order' => $pf_order['id'],
+                            'status_to' => $pf_order['status']] ;
+            $this->grav['log']->warning('Printful: no order found matching id ' . $pf_order['external_id']) ;
+        } else {
+            switch ($body['type']) {
 
-                $kahunacart = KahunaCart::instance();
-                $customFields = $kahunacart->customFields();
-                $orders = $customFields->rows('order', 'printful_ref', 'asc', [ 'printful_ref' => $pf_order['id']]) ;
-
-                if (count($orders) == 1) {
+                case 'order_updated':
+                    // general order update
 
                     // update the new status on the order
                     $kahunacart->customFields()->write('order', $orders[0]['id'], ['printful_status' => $pf_order['status']], false) ;
@@ -88,30 +92,29 @@ class PrintfulApiController extends AbstractApiController
                     // certain statuses also need actions on the order or cart
                     switch ($pf_order['status']) {
                         case 'canceled' :
-                            break ;
-                        case 'partial' :
-                            break ;
-                        case 'shipped' :
+                            // we have to remove this item from the order
+
                             break ;
                         default:
-                            // nothing
+                            // nothing else to do
                     }
-                } else {
-                    $response = [ 'status' => 'not found',
-                                    'printful_order' => $pf_order['id'],
-                                    'status_to' => $pf_order['status']] ;
-                    $this->grav['log']->warning('Printful: no order found matching id ' . $pf_order['external_id']) ;
-                }
-                break ;
 
-            case 'package_shipped':
-                // items have been shipped
+                    break ;
 
+                case 'package_shipped':
+                    // items have been shipped
+                    // we need to work out which items this refers to
+                    $order = $orders[0] ;
+                    $pf_shipment = $body['data']['shipment'] ;
 
-                break ;
+                    $items = $kahunacart->orders()->itemsFor($order['id']) ;
+                    foreach ($items as $item) {
+                        $shipping_ref =  $kahunacart->customFields()->valuesFor('order_item', $item['id'])->text('printful_shipping_ref') ;
+                    }
 
+                    break ;
+            }
         }
-
 
         return ApiResponse::create($response);
     }

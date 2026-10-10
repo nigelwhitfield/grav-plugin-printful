@@ -138,8 +138,8 @@ class PrintfulPlugin extends Plugin
             'default' => 0,
             'position' => 10,
             'visibility' => 'internal'
-        ], 'printful')
-        ->declare([
+        ], 'printful');
+        $event['registry']->declare([
             'entity' => 'variant',
             'name' => 'printful_variant',
             'type' => 'integer',
@@ -150,8 +150,8 @@ class PrintfulPlugin extends Plugin
             'default' => 0,
             'position' => 10,
             'visibility' => 'internal'
-        ], 'printful')
-        ->declare([
+        ], 'printful');
+        $event['registry']->declare([
             'entity' => 'order',
             'name' => 'printful_status',
             'type' => 'select',
@@ -162,8 +162,8 @@ class PrintfulPlugin extends Plugin
             'default' => 'na',
             'position' => 10,
             'visibility' => 'internal'
-        ], 'printful')
-        ->declare([
+        ], 'printful');
+        $event['registry']->declare([
             'entity' => 'order',
             'name' => 'printful_ref',
             'type' => 'text',
@@ -172,8 +172,8 @@ class PrintfulPlugin extends Plugin
             'filterable' => true,
             'position' => 10,
             'visibility' => 'internal'
-        ], 'printful')
-        ->declare([
+        ], 'printful');
+        $event['registry']->declare([
             'entity' => 'order_item',
             'name' => 'printful_shipping_ref',
             'type' => 'text',
