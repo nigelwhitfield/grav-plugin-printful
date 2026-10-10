@@ -84,15 +84,14 @@ class WebhookEnableCommand extends ConsoleCommand
 									'order_updated']
 				] ;
 
-				var_dump($webhooks) ;
-				/*$pf_enable = PrintfulPlugin::printfulAPI('webhooks', null, null, false, $webhooks) ;
+				$pf_enable = PrintfulPlugin::printfulAPI('webhooks', null, null, false, $webhooks) ;
 
 				if (($pf_enable === false) || ($pf_enable->code != 200)) {
 					$this->output->writeln("Error talking to Printful; unable to enable webhooks") ;
 					$this->output->writeln(json_encode($pf_enable, JSON_PRETTY_PRINT + JSON_UNESCAPED_SLASHES)) ;
 				} else {
 					$this->output->writeln("Done") ;
-				}*/
+				}
 			}
 		}
 	}
