@@ -79,7 +79,7 @@ class WebhookEnableCommand extends ConsoleCommand
 				$this->output->writeln(sprintf("Enabling webhooks for Printful shop '%s'\n", $pf_result->result[0]->name)) ;
 
 				$webhooks = [
-					'url' => $grav['config']->get('custom_base_url') . '/api/v1/printful/webhook?api_key=' . $this->options['api_key'],
+					'url' => $grav['config']->get('system.custom_base_url') . '/api/v1/printful/webhook?api_key=' . $this->options['api_key'],
 					'types' => [ 	'package_shipped',
 									'order_updated']
 				] ;
