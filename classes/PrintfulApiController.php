@@ -81,7 +81,8 @@ class PrintfulApiController extends AbstractApiController
                     $response = [   'status' => 'ok',
                                     'local_id' => $order['id'],
                                     'printful_order' => $pf_order['id'],
-                                    'status_to' => $pf_order['status']] ;
+                                    'status_to' => $pf_order['status'],
+                                    'order' => $order] ;
 
                     // certain statuses also need actions on the order or cart
                     switch ($pf_order['status']) {
@@ -102,10 +103,9 @@ class PrintfulApiController extends AbstractApiController
                 }
                 break ;
 
-
-
             case 'package_shipped':
                 // items have been shipped
+
 
                 break ;
 
