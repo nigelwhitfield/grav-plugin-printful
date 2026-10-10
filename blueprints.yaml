@@ -1,0 +1,104 @@
+name: Printful
+slug: printful
+type: plugin
+version: 0.9.2
+description: Allows Kahuna Cart to build a catalog and order items from Printful
+icon: shirt
+author:
+  name: Nigel Whitfield
+  email: nigel@nigelwhitfield.com
+homepage: https://github.com/nigelwhitfield/grav-plugin-printful
+demo: http://demo.yoursite.com
+keywords: grav, plugin, etc
+bugs: https://github.com/nigelwhitfield/grav-plugin-printful/issues
+docs: https://github.com/nigelwhitfield/grav-plugin-printful/blob/develop/README.md
+license: MIT
+
+compatibility:
+  grav: ['2.0']
+
+dependencies:
+  - { name: grav, version: '>=2.0.0' }
+  - { name: kahunacart, version: '>=1.4.0' }
+
+form:
+  validation: loose
+  fields:
+    enabled:
+      type: toggle
+      label: PLUGIN_ADMIN.PLUGIN_STATUS
+      highlight: 1
+      default: 0
+      options:
+        1: PLUGIN_ADMIN.ENABLED
+        0: PLUGIN_ADMIN.DISABLED
+      validate:
+        type: bool
+    api_key:
+      type: text
+      label: PLUGIN_PRINTFUL.LABEL_API
+      help: PLUGIN_PRINTFUL.LABEL_API_HELP
+    delay_hours:
+      type: text
+      label: PLUGIN_PRINTFUL.LABEL_DELAY
+      help: PLUGIN_PRINTFUL.LABEL_DELAY_HELP
+      default: 4
+      validate:
+        type: int
+        min: 0
+        max: 500
+    draft_mode:
+      type: toggle
+      label: PLUGIN_PRINTFUL.LABEL_DRAFT
+      help: PLUGIN_PRINTFUL.LABEL_DRAFT_HELP
+      default: 0
+      options: 
+        1: PLUGIN_ADMIN.ENABLED
+        0: PLUGIN_ADMIN.DISABLED
+      validate:
+          type: bool
+    order_email:
+      type: toggle
+      label: PLUGIN_PRINTFUL.LABEL_ORDER_EMAIL
+      help: PLUGIN_PRINTFUL.LABEL_ORDER_EMAIL_HELP
+      default: 0
+      options: 
+        1: PLUGIN_ADMIN.ENABLED
+        0: PLUGIN_ADMIN.DISABLED
+      validate:
+        type: bool
+    size_units:
+      type: toggle
+      label: PLUGIN_PRINTFUL.LABEL_SIZE
+      help: PLUGIN_PRINTFUL.LABEL_SIZE_HELP
+      default: 0
+      options: 
+        1: PLUGIN_PRINTFUL.LABEL_SIZE_INCHES
+        0: PLUGIN_PRINTFUL.LABEL_SIZE_CM
+      validate:
+        type: bool
+    order_prefix:
+      type: text
+      label: PLUGIN_PRINTFUL.LABEL_PREFIX
+      help: PLUGIN_PRINTFUL.LABEL_PREFIX_HELP
+      default: 'KC'
+    store_email:
+      type: email
+      label: PLUGIN_PRINTFUL.LABEL_EMAIL
+      help: PLUGIN_PRINTFUL.LABEL_EMAIL_HELP
+    logo_url:
+      type: text
+      label: PLUGIN_PRINTFUL.LABEL_URL
+      help: PLUGIN_PRINTFUL.LABEL_URL_HELP
+    store_name:
+      type: text
+      label: PLUGIN_PRINTFUL.LABEL_STORE
+      help: PLUGIN_PRINTFUL.LABEL_STORE_HELP
+    store_phone:
+      type: text
+      label: PLUGIN_PRINTFUL.LABEL_PHONE
+      help: PLUGIN_PRINTFUL.LABEL_PHONE_HELP
+    message:
+      type: text
+      label: PLUGIN_PRINTFUL.LABEL_MESSAGE
+      help: PLUGIN_PRINTFUL.LABEL_MESSAGE_HELP

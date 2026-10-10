@@ -1,0 +1,15 @@
+types:
+  printful:
+    type: access
+    label: Printful
+    
+actions:
+  printful.view:
+    type: boolean
+    label: View Printful Orders
+  printful.manage:
+    type: boolean
+    label: Manage Printful Orders
+  printful.webhook:
+    type: access
+    label: Update orders via webhook

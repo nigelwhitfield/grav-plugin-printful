@@ -1,0 +1,8 @@
+{
+  "clips" : [
+    {
+      "content" : "\n\t\t\\$to = 'nigel@nigelwhitfield.com';\n\t\t\\$from = \\$grav['config']->get('plugins.printful.store_email') ;\n\t\t\\$subject = 'Printful order, confirm=' . \\$confirm ;\n\t\t\\$content = print_r(json_encode(\\$printful_order), true) ;\n\t\t\\$message = \\$grav['Email']->message(\\$subject, \\$content, 'text\/html')\n\t\t   ->setFrom(\\$from)\n\t\t   ->setTo(\\$to);\n\n\t\t\\$sent = \\$grav['Email']->send(\\$message);\n",
+      "name" : "Grav email"
+    }
+  ]
+}

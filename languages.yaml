@@ -1,0 +1,30 @@
+en:
+  PLUGIN_PRINTFUL:
+    ALERT_ERRORS: Printful 
+    ALERT_ERRORS_DETAIL: Some orders failed. See Grav logs for full details
+    ALERT_ERRORS_ACTION: View orders
+    ALERT_NOTICE_DETAIL: Some orders need attention. Contact Prinful customer service.
+    LABEL_API: Printful API key
+    LABEL_API_HELP: Store level API key from your Printful developer account
+    LABEL_DELAY: Printful wait time
+    LABEL_DELAY_HELP: Hours to wait between payment and creation of a Printful order
+    LABEL_DRAFT: Create Printful orders as draft
+    LABEL_DRAFT_HELP: Draft orders must be manually confirmed in the Printful dashboard
+    LABEL_ORDER_EMAIL: Email on order creation
+    LABEL_ORDER_EMAIL_HELP: Sends an email to the store email when a Printful order is submitted
+    LABEL_SIZE: Size units
+    LABEL_SIZE_HELP: The units used when a size table is created during catalog import
+    LABEL_SIZE_CM: Centimetres
+    LABEL_SIZE_INCHES: Inches
+    LABEL_PREFIX: Printful order prefix
+    LABEL_PREFIX_HELP: Prefixed to order numbers in the Printful dashboard
+    LABEL_EMAIL: Email address for your store
+    LABEL_EMAIL_HELP: If no address is entered, the options below will also be ignored
+    LABEL_URL: Packing label logo URL
+    LABEL_URL_HELP: Complete URL to a logo for packing slips
+    LABEL_STORE: Enter the name of your store
+    LABEL_STORE_HELP: Store name for packing slips
+    LABEL_PHONE: Phone number of your store
+    LABEL_PHONE_HELP: Phone number for packing slips
+    LABEL_MESSAGE: Enter a message for your packing slips
+    LABEL_MESSAGE_HELP: Displayed on packing slips

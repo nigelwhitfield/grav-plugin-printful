@@ -1,0 +1,25 @@
+{
+  "name": "nigelwhitfield/printful",
+  "type": "grav-plugin",
+  "description": "Allows Kahuna Cart to order items from Printful templates",
+  "version": "1.0.0",
+  "keywords": ["plugin"],
+  "homepage": "https://github.com/nigelwhitfield/grav-plugin-printful",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Nigel Whitfield",
+      "email": "nigel@nigelwhitfield.com",
+      "role": "Developer"
+    }
+  ],
+  "require": {
+    "php": ">=8.3.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Grav\\Plugin\\PrintfulPlugin\\": "classes/"
+    },
+    "classmap":  ["printful.php"]
+  }
+}
