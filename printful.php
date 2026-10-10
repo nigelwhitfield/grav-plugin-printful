@@ -297,8 +297,8 @@ class PrintfulPlugin extends Plugin
 
             $updated = $order['updated_at'] ;
             if ($updated < time()-$delay) {
-                $grav['log']->info('Printful: Creating order for #' . $oid) ;
-                $printful_ref = self::despatchPrintfulOrder($oid, $address) ;
+                $grav['log']->info('Printful: Creating order for ' . $number) ;
+                $printful_ref = self::despatchPrintfulOrder($oid, $order['number'], $address) ;
                 if ($printful_ref !== false) {
                     $kahunacart->customFields()->write('order', $oid, ['printful_ref' => $printful_ref], false) ;
                     // the 'submitted' status ensures we don't try this again, before we get an update from Printful
@@ -314,7 +314,7 @@ class PrintfulPlugin extends Plugin
     /*
      * And now send an order to the Printful api
      */
-    public static function despatchPrintfulOrder(int $orderid, $address)
+    public static function despatchPrintfulOrder(int $orderid, $number, $address)
     {
         $grav = Grav::instance() ;
 
@@ -327,7 +327,7 @@ class PrintfulPlugin extends Plugin
         }
 
         if ($address == null) {
-            $grav['log']->warning('Printful: No address available for order ' . $orderid) ;
+            $grav['log']->warning('Printful: No address available for order ' . $number) ;
             return false ;
         }
 
@@ -359,13 +359,13 @@ class PrintfulPlugin extends Plugin
 
         if (count($printful_products) == 0) {
             // something wrong here - perhaps misconfigured products
-            $grav['log']->warning('Printful: No products found. Check product or variant configurations for order ' . $orderid) ;
+            $grav['log']->warning('Printful: No products found. Check product or variant configurations for order ' . $number) ;
             return false ;
         }
 
         // if we got here, we have an array of products to send to Printful, so we need to make the rest of the order object
         $printful_order = new \stdClass() ;
-        $printful_order->external_id = $grav['config']->get('plugins.printful.order_prefix') . $orderid ;
+        $printful_order->external_id = $grav['config']->get('plugins.printful.order_prefix') . $number ;
 
         $printful_order->items = $printful_products ;
 
@@ -392,7 +392,7 @@ class PrintfulPlugin extends Plugin
             $packing_slip->message = $grav['config']->get('plugins.printful.message') ;
             $packing_slip->logo_url = $grav['config']->get('plugins.printful.logo_url') ;
             $packing_slip->store_name = $grav['config']->get('plugins.printful.store_name') ;
-            $packing_slip->custom_order_id = $orderid ;
+            $packing_slip->custom_order_id = $number ;
 
             $printful_order->packing_slip = $packing_slip ;
         }
@@ -424,7 +424,7 @@ class PrintfulPlugin extends Plugin
 
         if ($response === false) {
             // curl error
-            $grav['log']->error('Printful: Unsuccessful call to ' . $endpoint . ' for order ' . $orderid) ;
+            $grav['log']->error('Printful: Unsuccessful call to ' . $endpoint . ' for order ' . $number) ;
             return false ;
         }
 
@@ -444,17 +444,17 @@ class PrintfulPlugin extends Plugin
 
         if (!isset($printful_response->code)) {
             // unexpected return value
-            $grav['log']->error('Printful: Unexpected response from ' . $endpoint . 'for order ' . $orderid) ;
+            $grav['log']->error('Printful: Unexpected response from ' . $endpoint . 'for order ' . $number) ;
             return false ;
         }
 
         if ($printful_response->code != 200) {
-            $grav['log']->error('Printful: ' . $printful_response->code . ': ' . $printful_response->result . ' for order ' . $orderid) ;
+            $grav['log']->error('Printful: ' . $printful_response->code . ': ' . $printful_response->result . ' for order ' . $number) ;
             return false ;
         }
 
         if ($printful_response->result->status == 'failed') {
-            $grav['log']->warning('Printful: Unable to create order for ' . $orderid) ;
+            $grav['log']->warning('Printful: Unable to create order for ' . $number) ;
             return false ;
         }
 
