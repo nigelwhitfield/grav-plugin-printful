@@ -340,6 +340,7 @@ class PrintfulPlugin extends Plugin
         $printful_products = array() ;
 
         foreach ($items as $item) {
+            $grav['log']->debug('Cart item ' . json_encode($item)) ;
             $pfid = $kahunacart->customFields()->valuesFor('product', $item['product_id'])->text('printful_product') ;
             if ($pfid > 0) {
                 // get the sync variant
@@ -396,6 +397,7 @@ class PrintfulPlugin extends Plugin
             $printful_order->packing_slip = $packing_slip ;
         }
 
+        // To - Do: rewrite this to use the generate PrintfulAPI function below
         // draft mode - orders have to be confirmed separately; useful for testing
         $confirm = ($grav['config']->get('plugins.printful.draft_mode') == 1) ? 'false' : 'true' ;
 
@@ -459,14 +461,11 @@ class PrintfulPlugin extends Plugin
         return $printful_response->result->id ;
     }
 
-    private function updatePrintfulStatus($printful_ref, $order_id)
-    {
-    }
 
     /*
      * General helper function for the Printful api
      */
-    public static function printfulApi(string $endpoint, string $api_key = null, int $id = null, $offset = false)
+    public static function printfulApi(string $endpoint, string $api_key = null, int $id = null, $offset = false, $postdata = null, $method = null)
     {
         $grav = Grav::instance() ;
 
@@ -481,6 +480,12 @@ class PrintfulPlugin extends Plugin
             $url.= ($id == null) ? '?offset=' . $offset : '&offset=' . $offset ;
         }
 
+        if (($method == null) && ($postdata == null)) {
+            $method = 'GET' ;
+        } elseif ($postdata != null) {
+            $method = ($method == null) ? 'POST' : $method ;
+        }
+
         curl_setopt_array($api, [
           CURLOPT_URL => $url ,
           CURLOPT_RETURNTRANSFER => true,
@@ -488,12 +493,16 @@ class PrintfulPlugin extends Plugin
           CURLOPT_MAXREDIRS => 10,
           CURLOPT_TIMEOUT => 30,
           CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-          CURLOPT_CUSTOMREQUEST => "GET",
+          CURLOPT_CUSTOMREQUEST =>  $method,
           CURLOPT_HTTPHEADER => [
             "Content-Type: application/json;charset=utf-8",
             "Authorization: Bearer " . $api_key
           ],
         ]);
+
+        if ($postdata != null) {
+            curl_setopt($api, CURLOPT_POSTFIELDS, json_encode($postdata, JSON_PRETTY_PRINT + JSON_UNESCAPED_SLASHES)) ;
+        }
 
         $response = curl_exec($api) ;
 
