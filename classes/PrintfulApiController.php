@@ -83,7 +83,7 @@ class PrintfulApiController extends AbstractApiController
                                     'local_id' => $orders[0]['id'],
                                     'printful_order' => $pf_order['id'],
                                     'status_to' => $pf_order['status'],
-                                    'order' => $order[0]] ;
+                                    'order' => $orders[0]] ;
 
                     // certain statuses also need actions on the order or cart
                     switch ($pf_order['status']) {
