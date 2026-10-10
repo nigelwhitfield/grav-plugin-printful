@@ -73,16 +73,17 @@ class PrintfulApiController extends AbstractApiController
 
                 $kahunacart = KahunaCart::instance();
                 $customFields = $kahunacart->customFields();
-                $order = $customFields->rows('order', 'printful_ref', 'asc', [ 'printful_ref' => $pf_order['id']]) ;
+                $orders = $customFields->rows('order', 'printful_ref', 'asc', [ 'printful_ref' => $pf_order['id']]) ;
 
-                if (count($order) == 1) {
+                if (count($orders) == 1) {
+
                     // update the new status on the order
-                    $kahunacart->customFields()->write('order', $order['id'], ['printful_status' => $pf_order['status']], false) ;
+                    $kahunacart->customFields()->write('order', $orders[0]['id'], ['printful_status' => $pf_order['status']], false) ;
                     $response = [   'status' => 'ok',
-                                    'local_id' => $order['id'],
+                                    'local_id' => $orders[0]['id'],
                                     'printful_order' => $pf_order['id'],
                                     'status_to' => $pf_order['status'],
-                                    'order' => $order] ;
+                                    'order' => $order[0]] ;
 
                     // certain statuses also need actions on the order or cart
                     switch ($pf_order['status']) {
