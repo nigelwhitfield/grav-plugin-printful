@@ -1,7 +1,5 @@
 # Printful Plugin
 
-**This README.md file should be modified to describe the features, installation, configuration, and general usage of the plugin.**
-
 The **Printful** Plugin is an extension for [Grav CMS](https://github.com/getgrav/grav). It allows KahunaCart to order items from Printful templates
 
 ## Installation
@@ -32,7 +30,7 @@ If you use the Admin Plugin, you can install the plugin directly by browsing the
 
 ## Configuration
 
-Configure the plugin via its in-build settings screen. These are the options available:
+Configure the plugin via its in-built settings screen. These are the options available:
 
 #### Printful API key
 This is the API key that allows the plugin to access Printful, to place orders, or generate a product catalog
@@ -123,6 +121,16 @@ There are also many options that can be configured for the catalog import; `--al
 + `--save` If specified, the data is written to a YAML file, and the name is displayed. Otherwise, it is output to the console. If --images has been specified, then the images are saved in user/images/kahunacart/products
 + `--all` A quick option that selects --descriptions, --types, --categories, --images and --sizes.
 
+### Order updates
+To track the progress of Printful orders, you need to configure a webhook on Printful, which will update the status as orders progress through their system, and pass on notifications when a package is shipped. A Grav API key needs to be created for this. I recommend creating a new user, with minimal permissions. It needs to be granted api.access and printful.webhook. You can create this in Grav admin, then at the bottom of the page, generate an API key for the user.
+
+To enable the webhooks use the cli command `bin/plugin printful webhook:enable --api_key=grav12345678990`
+
+You can optionally pass the `--key` parameter to specify a Printful API key, if you have not yet configured your store in the admin panel, or wish to enable hooks for a different store (which will likely cause chaos, as order numbers won't match)
+
+To disable the webhooks, use the cli command `bin/plug printful webhook:disable`
+
+This too can optionally take a `--key` parameter for a Printful API key.
 
 ## Credits
 
