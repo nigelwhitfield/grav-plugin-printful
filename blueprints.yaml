@@ -1,7 +1,7 @@
 name: Printful
 slug: printful
 type: plugin
-version: 0.9.3
+version: 0.9.4
 description: Allows Kahuna Cart to build a catalog and order items from Printful
 icon: shirt
 author:

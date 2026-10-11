@@ -4,6 +4,7 @@ en:
     ALERT_ERRORS_DETAIL: Some orders failed. See Grav logs for full details
     ALERT_ERRORS_ACTION: View orders
     ALERT_NOTICE_DETAIL: Some orders need attention. Contact Prinful customer service.
+    ALERT_EXCEPTION_DETAIL: Some orders could not be cancelled on Printful
     LABEL_API: Printful API key
     LABEL_API_HELP: Store level API key from your Printful developer account
     LABEL_DELAY: Printful wait time

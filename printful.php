@@ -39,6 +39,7 @@ class PrintfulPlugin extends Plugin
             'onPluginsInitialized' => ['onPluginsInitialized', 0],
             'onKahunaCartRegisterCustomFields' => ['onKahunaCartRegisterCustomFields', 0],
             'onKahunaCartOrderPaid' => ['onKahunaCartOrderPaid',0],
+            'onKahunaCartOrderReversed' => ['onKahunaCartOrderReversed',0],
             'onSchedulerInitialized' => ['onSchedulerInitialized',0],
             'onKahunaCartRegisterDashboardAlerts' => ['onRegisterAlerts', 0],
             'onApiRegisterRoutes' => ['onApiRegisterRoutes', 0],
@@ -155,7 +156,7 @@ class PrintfulPlugin extends Plugin
             'entity' => 'order',
             'name' => 'printful_status',
             'type' => 'select',
-            'validate' => [ 'options' => [ 'na', 'queued', 'submitted', 'draft', 'failed','inreview','pending','canceled','onhold','inprocess','partial','fulfilled' ]],
+            'validate' => [ 'options' => [ 'na', 'queued', 'submitted', 'draft', 'failed','inreview','pending','canceled','onhold','inprocess','partial','fulfilled','exception' ]],
             'label_key' => 'Printful status',
             'sortable' => true,
             'filterable' => true,
@@ -202,7 +203,7 @@ class PrintfulPlugin extends Plugin
             'printful_order_errors',
             // What the check finds. Return an array. Every other callback here is
             // handed this, and it is what the payload carries.
-            fn (): array => ['count' => $this->countPrintfulErrors()],
+            fn (): array => ['count' => $this->countPrintfulStatuses('error')],
             // Seconds before it runs again. This one is a counting query over an
             // indexed column, so five minutes is generous.
             recheckInterval: 1800,
@@ -233,7 +234,7 @@ class PrintfulPlugin extends Plugin
             'printful_order_notices',
             // What the check finds. Return an array. Every other callback here is
             // handed this, and it is what the payload carries.
-            fn (): array => ['count' => $this->countPrintfulNotices()],
+            fn (): array => ['count' => $this->countPrintfulStatuses('onhold')],
             // Seconds before it runs again. This one is a counting query over an
             // indexed column, so five minutes is generous.
             recheckInterval: 1800,
@@ -259,25 +260,48 @@ class PrintfulPlugin extends Plugin
             // puts it back.
             dismissWindow: 86400,
         ));
+
+        $event['registry']->register(new CallableAlert(
+            'printful_order_exceptions',
+            // What the check finds. Return an array. Every other callback here is
+            // handed this, and it is what the payload carries.
+            fn (): array => ['count' => $this->countPrintfulStatuses('exception')],
+            // Seconds before it runs again. This one is a counting query over an
+            // indexed column, so five minutes is generous.
+            recheckInterval: 1800,
+            // Whether there is anything to say. A check that finds nothing wrong
+            // should return data and answer false here.
+            shouldShow: fn (array $d): bool => $d['count'] > 0,
+            // The headline, as a key and its arguments.
+            title: fn (array $d): array => [
+                'key' => 'PLUGIN_PRINTFUL.ALERT_ERRORS',
+                'args' => [(string)$d['count']],
+            ],
+            // The sentence under it, saying what to do. Optional.
+            detail: fn (): ?array => ['key' => 'PLUGIN_PRINTFUL.ALERT_EXCEPTION_DETAIL', 'args' => []],
+            severity: fn (): string => 'error',
+            // Where the button goes, as an admin route inside the KahunaCart
+            // section. The shell navigates to it without reloading the page.
+            actions: fn (): array => [[
+                'code' => 'open',
+                'label_key' => 'PLUGIN_PRINTFUL.ALERT_ERRORS_ACTION',
+                'route' => '/orders?cf[printful_status]=exception',
+            ]],
+            // How long a dismissal lasts, in seconds. Null means until the user
+            // puts it back.
+            dismissWindow: 86400,
+        ));
     }
 
-    public static function countPrintfulErrors(): int
+
+    public static function countPrintfulStatuses(string $status): int
     {
+        // return the number of orders with a specific Printful status
         $kahunacart = KahunaCart::instance();
 
         $customFields = $kahunacart->customFields();
 
-        $orders = $customFields->rows('order', 'printful_status', 'asc', [ 'printful_status' => 'failed']) ;
-        return count($orders) ;
-    }
-
-    public static function countPrintfulNotices(): int
-    {
-        $kahunacart = KahunaCart::instance();
-
-        $customFields = $kahunacart->customFields();
-
-        $orders = $customFields->rows('order', 'printful_status', 'asc', [ 'printful_status' => 'onhold']) ;
+        $orders = $customFields->rows('order', 'printful_status', 'asc', [ 'printful_status' => $status]) ;
         return count($orders) ;
     }
 
@@ -466,6 +490,61 @@ class PrintfulPlugin extends Plugin
         }
 
         return $printful_response->result->id ;
+    }
+
+    /*
+     * Cancel an order, if possible
+     */
+    public function onKahunaCartOrderReversed(Event $e): void
+    {
+        $oid = $e['order_id'] ;
+        if (! $this->cancelOrder($oid)) {
+            $this->grav['log']->error('Unable to cancel Printful order for order ' . $oid) ;
+        }
+    }
+
+    public static function cancelOrder($order_id): bool
+    {
+        // If an order is being cancelled in KahunaCart, see if it has a printful ref or a status of queued
+        // we start by getting the order and checking the Printful ref, if any
+
+        $kahunacart = KahunaCart::instance();
+
+        $customFields = $kahunacart->customFields();
+
+        $printful_ref =  $customFields->valuesFor('order', $order_id)->text('printful_ref') ;
+
+        $printful_status  = $customFields->valuesFor('order', $order_id)->text('printful_ref') ;
+
+        if ($printful_status == 'queued') {
+            // mark this as cancelled, so it won't be created in the first place
+            $customFields->write('order', $order_id, ['printful_status' => 'cancelled'], false) ;
+            return true ;
+        }
+
+        // for other orders, get the status from Printful, so we are up to date, in case any webhooks have failed
+        $pf_result = printfulAPI('orders', null, $printful_ref) ;
+        if (($pf_result === false) || ($pf_result->code != 200)) {
+            $grav['log']->error('Printful: ' . $pf_result->code . ': ' . $pf_result->result . ' checking order ' . $order_id) ;
+            return false ;
+        } else {
+            $pf_status = $pf_result->data->status ;
+            if (in_array($pf_status, [ 'inprocess', 'partial', 'fulfilled'])) {
+                // order has already reached an un-cancellable status
+                $grav['log']->error('Printful: order ' . $order_id . ' has status ' . $pf_status . ' and cannot be cancelled') ;
+                return false ;
+            } else {
+                $pf_delete = printfulAPI('orders', null, $printful_ref, false, null, 'DELETE') ;
+                if (($pf_delete === false) || ($pf_delete->code != 200)) {
+                    $grav['log']->error('Printful: ' . $pf_delete->code . ': ' . $pf_delete->result . ' cancelling order ' . $order_id) ;
+                    return false ;
+                } else {
+                    // mark as cancelled
+                    $customFields->write('order', $order_id, ['printful_status' => 'cancelled'], false) ;
+                    return true ;
+                }
+            }
+        }
     }
 
 
