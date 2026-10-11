@@ -203,7 +203,7 @@ class PrintfulPlugin extends Plugin
             'printful_order_errors',
             // What the check finds. Return an array. Every other callback here is
             // handed this, and it is what the payload carries.
-            fn (): array => ['count' => $this->countPrintfulStatuses('error')],
+            fn (): array => ['count' => $this->countPrintfulStatuses('failed')],
             // Seconds before it runs again. This one is a counting query over an
             // indexed column, so five minutes is generous.
             recheckInterval: 1800,

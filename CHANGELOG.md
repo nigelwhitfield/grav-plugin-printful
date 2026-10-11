@@ -1,3 +1,8 @@
+# v0.9.5
+## 10/11/2026
+1. [](#bugfix)
+    * Fix eror in status check for failed orders
+
 # v0.9.4
 ## 10/11/2026
 
