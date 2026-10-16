@@ -1,3 +1,8 @@
+# v0.9.6
+## 10/16/2026
+1. [](#new)
+    * Printful shipments are now correctly recorded via the webhook and will trigger Kahunacart's "On the way" email
+
 # v0.9.5
 ## 10/11/2026
 1. [](#bugfix)

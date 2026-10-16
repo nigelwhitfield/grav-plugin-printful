@@ -59,7 +59,7 @@ class PrintfulApiController extends AbstractApiController
 
         $body = $this->getRequestBody($request);
         $this->requireFields($body, ['type']);
-        $response = 'not sure yet ...' ;
+        $response = 'ok' ;
 
         $pf_order = $body['data']['order'] ;
         $this->grav['log']->info('Printful: webhook received: ' . $body['type'] . ' for order ' . $pf_order['external_id']) ;
@@ -71,7 +71,7 @@ class PrintfulApiController extends AbstractApiController
         $orders = $customFields->rows('order', 'printful_ref', 'asc', [ 'printful_ref' => $pf_order['id']]) ;
 
         if (count($orders) != 1) {
-            $response = [ 'status' => 'not found',
+            $response = [   'status' => 'not found',
                             'printful_order' => $pf_order['id'],
                             'status_to' => $pf_order['status']] ;
             $this->grav['log']->warning('Printful: no order found matching id ' . $pf_order['external_id']) ;
@@ -131,12 +131,13 @@ class PrintfulApiController extends AbstractApiController
                         $shipping_ref =  $kahunacart->customFields()->valuesFor('order_item', $item['id'])->text('printful_shipping_ref') ;
                         if ($pf_shipment['id'] == $shipping_ref) {
                             // we've seen this reference before
+                            $response = 'duplicate webhook' ;
                             break ;
                         }
 
                         // ok, so let's see what's been shipped
                         foreach ($shipment_map as $shipped) {
-                            if ($shipped['line_item'] == $item['id']) {
+                            if ($shipped['item_id'] == $item['id']) {
                                 // this is the correct item
                                 $shipped_items[] = $shipped ;
 
@@ -152,21 +153,12 @@ class PrintfulApiController extends AbstractApiController
                         $result = KahunaCart::instance()->fulfillment()->ship(
                             $order['id'],
                             $shipped_items,
-                            [   'tracking_number' => $pf_shipment['tracking_number'],
+                            [   'carrier' => strtolower($pf_shipment['carrier']),
+                                'tracking_number' => $pf_shipment['tracking_number'],
                                 'tracking_url' => $pf_shipment['tracking_url'],
                                 'created_by_type' => 'integration',
                                 'created_by' => 'printful'],
                         ) ;
-
-                        $to = $this->grav['config']->get('plugins.printful.store_email') ;
-                        $from = $this->grav['config']->get('plugins.printful.store_email') ;
-                        $subject = 'Order shipping result ' ;
-                        $content = print_r($result, true) ;
-                        $message = $this->grav['Email']->message($subject, $content, 'text/html')
-                           ->setFrom($from)
-                           ->setTo($to);
-
-                        $sent = $this->grav['Email']->send($message);
                     }
 
                     break ;

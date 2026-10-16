@@ -138,7 +138,7 @@ Nigel Whitfield, with many thanks to the Kahanucart developers
 
 ## To Do
 
-- [ ] Handle cancelled orders
-- [ ] Update shipment status
-- [ ] Move config into KahunaCart panel
+- [ ] Handle edited orders where a Printful items is removed (only fully cancelled orders are handled)
+- [ ] Handle orders that are cancelled on Printful (remove from Kahunacart order)
+- [ ] Move config into KahunaCart panel?
 - [ ] Integrate with admin-next
