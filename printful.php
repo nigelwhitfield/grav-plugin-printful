@@ -382,7 +382,7 @@ class PrintfulPlugin extends Plugin
                     $pf_product->quantity = $item['qty'] ;
                     $pf_product->retail_price = sprintf("%0.2f", $item['unit_price_minor']/100) ;
                     $pf_product->name = $item['title'] ;
-                    $pf_product->external_id = $item['id'] ;
+                    $pf_product->external_id = $item['id'] ; // we use this, as it will be unique to this item, rather than product_id
                     $printful_products[] = $pf_product ;
                 }
             }

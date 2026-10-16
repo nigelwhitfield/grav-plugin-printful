@@ -112,37 +112,61 @@ class PrintfulApiController extends AbstractApiController
 
                     $pf_order_items = $body['data']['order']['items'] ;
 
-                    $to = $this->grav['config']->get('plugins.printful.store_email') ;
-                    $from = $this->grav['config']->get('plugins.printful.store_email') ;
-                    $subject = 'Printful shipping data' ;
-                    $content = print_r($pf_shipment, true) ;
-                    $content .= print_r($pf_order_items, true) ;
-                    $message = $this->grav['Email']->message($subject, $content, 'text/html')
-                       ->setFrom($from)
-                       ->setTo($to);
-
-                    $sent = $this->grav['Email']->send($message);
-
-
+                    $shipment_map = array() ;
+                    // combine shipped items data with order items, so we only have to iterate both arrays once
+                    foreach ($pf_shipped_items as $shipped_item) {
+                        foreach ($pf_order_items as $order_item) {
+                            if ($order_item['id'] = $shipped_item['item_id']) {
+                                // we have a match
+                                $shipment_map[] = [ 'item_id' => $order_item['external_id'],
+                                                    'quantity'=> $shipped_item['quantity']] ;
+                                break ;
+                            }
+                        }
+                    }
 
                     $items = $kahunacart->orders()->itemsFor($order['id']) ;
+                    $shipped_items = array() ;
                     foreach ($items as $item) {
-                        $to = $this->grav['config']->get('plugins.printful.store_email') ;
-                        $from = $this->grav['config']->get('plugins.printful.store_email') ;
-                        $subject = 'Printful item data' ;
-                        $content = print_r($item, true) ;
-                        $message = $this->grav['Email']->message($subject, $content, 'text/html')
-                           ->setFrom($from)
-                           ->setTo($to);
-
-                        $sent = $this->grav['Email']->send($message);
-
-
                         $shipping_ref =  $kahunacart->customFields()->valuesFor('order_item', $item['id'])->text('printful_shipping_ref') ;
                         if ($pf_shipment['id'] == $shipping_ref) {
                             // we've seen this reference before
                             break ;
                         }
+
+                        // ok, so let's see what's been shipped
+                        foreach ($shipment_map as $shipped) {
+                            if ($shipped['line_item'] == $item['id']) {
+                                // this is the correct item
+                                $shipped_items[] = $shipped ;
+
+                                // mark the reference as having been used, so we avoid duplicates
+                                $kahunacart->customFields()->write('order_item', $item['id'], ['printful_shipping_ref' => $pf_shipment['id']]) ;
+                                break ;
+                            }
+                        }
+                    }
+
+                    // now we can notify the user, if required
+                    if (count($shipped_items) > 0) {
+                        $result = KahunaCart::instance()->fulfillment()->ship(
+                            $order['id'],
+                            $shipped_items,
+                            [   'tracking_number' => $pf_shipment['tracking_number'],
+                                'tracking_url' => $pf_shipment['tracking_url'],
+                                'created_by_type' => 'integration',
+                                'created_by' => 'printful'],
+                        ) ;
+
+                        $to = $this->grav['config']->get('plugins.printful.store_email') ;
+                        $from = $this->grav['config']->get('plugins.printful.store_email') ;
+                        $subject = 'Order shipping result ' ;
+                        $content = print_r($result, true) ;
+                        $message = $this->grav['Email']->message($subject, $content, 'text/html')
+                           ->setFrom($from)
+                           ->setTo($to);
+
+                        $sent = $this->grav['Email']->send($message);
                     }
 
                     break ;
