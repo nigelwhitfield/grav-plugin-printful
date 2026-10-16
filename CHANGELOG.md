@@ -1,3 +1,14 @@
+# v0.9.8
+## 10/16/2026
+1. [](#changed)
+    * Minor tweak to saving of Printful carrier information
+    
+    [](#bugfix)
+    * Fix log entry when creating orders
+    
+    [](#new)
+    * Add dashboard notice for draft orders
+
 # v0.9.6
 ## 10/16/2026
 1. [](#new)

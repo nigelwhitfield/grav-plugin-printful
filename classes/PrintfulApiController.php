@@ -153,7 +153,7 @@ class PrintfulApiController extends AbstractApiController
                         $result = KahunaCart::instance()->fulfillment()->ship(
                             $order['id'],
                             $shipped_items,
-                            [   'carrier' => strtolower($pf_shipment['carrier']),
+                            [   'carrier' => $pf_shipment['carrier'],
                                 'tracking_number' => $pf_shipment['tracking_number'],
                                 'tracking_url' => $pf_shipment['tracking_url'],
                                 'created_by_type' => 'integration',

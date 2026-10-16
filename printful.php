@@ -262,6 +262,37 @@ class PrintfulPlugin extends Plugin
         ));
 
         $event['registry']->register(new CallableAlert(
+            'printful_order_drafts',
+            // What the check finds. Return an array. Every other callback here is
+            // handed this, and it is what the payload carries.
+            fn (): array => ['count' => $this->countPrintfulStatuses('draft')],
+            // Seconds before it runs again. This one is a counting query over an
+            // indexed column, so five minutes is generous.
+            recheckInterval: 1800,
+            // Whether there is anything to say. A check that finds nothing wrong
+            // should return data and answer false here.
+            shouldShow: fn (array $d): bool => $d['count'] > 0,
+            // The headline, as a key and its arguments.
+            title: fn (array $d): array => [
+                'key' => 'PLUGIN_PRINTFUL.ALERT_ERRORS',
+                'args' => [(string)$d['count']],
+            ],
+            // The sentence under it, saying what to do. Optional.
+            detail: fn (): ?array => ['key' => 'PLUGIN_PRINTFUL.ALERT_DRAFT_DETAIL', 'args' => []],
+            severity: fn (): string => 'info',
+            // Where the button goes, as an admin route inside the KahunaCart
+            // section. The shell navigates to it without reloading the page.
+            actions: fn (): array => [[
+                'code' => 'open',
+                'label_key' => 'PLUGIN_PRINTFUL.ALERT_ERRORS_ACTION',
+                'route' => '/orders?cf[printful_status]=draft',
+            ]],
+            // How long a dismissal lasts, in seconds. Null means until the user
+            // puts it back.
+            dismissWindow: 86400,
+        ));
+
+        $event['registry']->register(new CallableAlert(
             'printful_order_exceptions',
             // What the check finds. Return an array. Every other callback here is
             // handed this, and it is what the payload carries.
@@ -328,7 +359,7 @@ class PrintfulPlugin extends Plugin
 
             $updated = $order['updated_at'] ;
             if ($updated < time()-$delay) {
-                $grav['log']->info('Printful: Creating order for ' . $number) ;
+                $grav['log']->info('Printful: Creating order for ' . $order['number']) ;
                 $printful_ref = self::despatchPrintfulOrder($oid, $order['number'], $address) ;
                 if ($printful_ref !== false) {
                     $kahunacart->customFields()->write('order', $oid, ['printful_ref' => $printful_ref], false) ;
