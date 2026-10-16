@@ -110,20 +110,34 @@ class PrintfulApiController extends AbstractApiController
 
                     $pf_shipped_items = $pf_shipment['items'] ;
 
+                    $pf_order_items = $body['data']['order']['items'] ;
+
                     $to = $this->grav['config']->get('plugins.printful.store_email') ;
                     $from = $this->grav['config']->get('plugins.printful.store_email') ;
                     $subject = 'Printful shipping data' ;
-                    $content = $print_r($pf_shipment, $pf_order_items, true) ;
+                    $content = print_r($pf_shipment, true) ;
+                    $content .= print_r($pf_order_items, true) ;
                     $message = $this->grav['Email']->message($subject, $content, 'text/html')
                        ->setFrom($from)
                        ->setTo($to);
 
                     $sent = $this->grav['Email']->send($message);
 
-                    $pf_order_items = $body['data']['order']['items'] ;
+
 
                     $items = $kahunacart->orders()->itemsFor($order['id']) ;
                     foreach ($items as $item) {
+                        $to = $this->grav['config']->get('plugins.printful.store_email') ;
+                        $from = $this->grav['config']->get('plugins.printful.store_email') ;
+                        $subject = 'Printful item data' ;
+                        $content = print_r($item, true) ;
+                        $message = $this->grav['Email']->message($subject, $content, 'text/html')
+                           ->setFrom($from)
+                           ->setTo($to);
+
+                        $sent = $this->grav['Email']->send($message);
+
+
                         $shipping_ref =  $kahunacart->customFields()->valuesFor('order_item', $item['id'])->text('printful_shipping_ref') ;
                         if ($pf_shipment['id'] == $shipping_ref) {
                             // we've seen this reference before
